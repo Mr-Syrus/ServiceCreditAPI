@@ -10,7 +10,7 @@ import java.time.LocalDate;
 public class UserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     @Column(name = "username", nullable = false, length = 50, unique = true)
     private String username;
@@ -89,7 +89,7 @@ public class UserEntity {
         setDepartmentCode(departmentCode);
     }
 
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
 

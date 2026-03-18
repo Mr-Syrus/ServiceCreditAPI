@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 public class ApplicationEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
@@ -121,7 +121,7 @@ public class ApplicationEntity {
         this.departmentCode = departmentCode;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 

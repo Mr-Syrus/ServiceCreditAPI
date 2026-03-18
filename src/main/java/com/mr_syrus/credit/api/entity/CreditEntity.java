@@ -19,7 +19,7 @@ public class CreditEntity {
         this.name = name;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
