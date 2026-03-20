@@ -10,8 +10,8 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
     @Query(
             "SELECT u FROM UserEntity u " +
-            "WHERE u.passport_series = :passport_series " +
-            "AND u.passport_number = :passport_number"
+            "WHERE u.passportSeries = :passport_series " +
+            "AND u.passportNumber = :passport_number"
     )
     Optional<UserEntity> findBySeriesAndNumber( //NullPointerException
             @Param("passport_series") String series,
