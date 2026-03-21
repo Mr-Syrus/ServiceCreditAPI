@@ -14,7 +14,7 @@ public class SessionEntity {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    private UserEntity user;
+    private UserEntity userId;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
@@ -37,32 +37,10 @@ public class SessionEntity {
     @Column(name = "status", nullable = false)
     private SessionStatus status;
 
-    // Автоматическая установка даты создания
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        if (expiresAt == null) {
-            expiresAt = createdAt.plusHours(2);
-        }
-        if (status == null) {
-            status = SessionStatus.ACTIVE;
-        }
-    }
-
-    // Метод для обновления активности
-    public void updateActivity() {
-        this.lastActivity = LocalDateTime.now();
-    }
-
-    // Проверка, активна ли сессия
-    public boolean isValid() {
-        return status == SessionStatus.ACTIVE &&
-                LocalDateTime.now().isBefore(expiresAt);
-    }
-
-    public SessionEntity(String sessionKey, UserEntity user, String ipAddress, String userAgent) {
+    //конструктор
+    public SessionEntity(String sessionKey, UserEntity userId, String ipAddress, String userAgent) {
         this.sessionKey = sessionKey;
-        this.user = user;
+        this.userId = userId;
         this.ipAddress = ipAddress;
         this.userAgent = userAgent;
     }
@@ -72,7 +50,7 @@ public class SessionEntity {
     }
 
     public UserEntity getUser() {
-        return user;
+        return userId;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -101,5 +79,26 @@ public class SessionEntity {
 
     public SessionStatus getStatus() {
         return status;
+    }
+
+    // Автоматическая установка даты создания
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        expiresAt = createdAt.plusHours(2);
+        if (status == null) {
+            status = SessionStatus.ACTIVE;
+        }
+    }
+
+    // Метод для обновления активности
+    public void updateActivity() {
+        this.lastActivity = LocalDateTime.now();
+    }
+
+    // Проверка, активна ли сессия
+    public boolean isValid() {
+        return status == SessionStatus.ACTIVE &&
+                LocalDateTime.now().isBefore(expiresAt);
     }
 }

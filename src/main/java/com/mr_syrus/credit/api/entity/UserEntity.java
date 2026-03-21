@@ -3,8 +3,6 @@ package com.mr_syrus.credit.api.entity;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 
-//ПЕРЕСМОТРЕТЬ!
-
 @Entity
 @Table(name = "users")
 public class UserEntity {
@@ -57,6 +55,7 @@ public class UserEntity {
 
     protected UserEntity() {
     }
+
     public UserEntity(
             String username,
             String mail,
@@ -89,9 +88,7 @@ public class UserEntity {
         setDepartmentCode(departmentCode);
     }
 
-    public Integer getId() {
-        return id;
-    }
+    public Integer getId() { return id; }
 
     public String getUsername() {
         return username;
