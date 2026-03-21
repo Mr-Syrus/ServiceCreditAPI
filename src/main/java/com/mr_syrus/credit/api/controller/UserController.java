@@ -3,7 +3,6 @@ package com.mr_syrus.credit.api.controller;
 import com.mr_syrus.credit.api.entity.UserEntity;
 import com.mr_syrus.credit.api.repository.UserRepository;
 import com.mr_syrus.credit.api.service.MailVerificationService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -15,9 +14,10 @@ import java.util.Optional;
 public class UserController {
 
     private final UserRepository userRepository;
-    //конструктор который указывает что usercontroller хочет userRepository
-    public UserController(UserRepository userRepository) {
+    private final MailVerificationService mailVerificationService;
+    public UserController(UserRepository userRepository, MailVerificationService mailVerificationService) {
         this.userRepository = userRepository;
+        this.mailVerificationService = mailVerificationService;
     }
 
     public static class DtoAuthWithPassportAndMail {
@@ -25,9 +25,6 @@ public class UserController {
         private String passportNumber;
         private String mail;
     }
-
-    @Autowired
-    private MailVerificationService mailService;
 
     @PostMapping("/send_code")
     public String sendCode(@RequestBody DtoAuthWithPassportAndMail dto) {
@@ -42,10 +39,9 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Mail not found");
         }
 
-        String code = mailService.generateVericationCode();
+        String code = mailVerificationService.sendVerificationCode(dto.mail);
 
-        //добавить отправку
 
-        return "code ok";
+        return "code 200";
     }
 }

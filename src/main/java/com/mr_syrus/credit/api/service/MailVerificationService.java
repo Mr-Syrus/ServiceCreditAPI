@@ -16,19 +16,20 @@ public class MailVerificationService {
         this.mailSender = mailSender;
     }
 
-    public String generateVericationCode() {
+    private String generateVericationCode() {
         SecureRandom random = new SecureRandom();
         int code = 100000 + random.nextInt(900000);
         return String.valueOf(code);
     }
 
-    public void sendVerificationCode(String toEmail, String code) {
+    public String sendVerificationCode(String toMail) {
+        String code = generateVericationCode();
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom("мое мыло"); //ВСТАВИТЬ РЕЛЕВАНТНЫЕ ДАННЫЕ
-        message.setTo(toEmail);
+        message.setTo(toMail);
         message.setSubject("Код подтверждения");
         message.setText("Ваш код подтверждения: " + code + "\nКод дествителен 10 минут");
 
         mailSender.send(message);
+        return code;
     }
 }
