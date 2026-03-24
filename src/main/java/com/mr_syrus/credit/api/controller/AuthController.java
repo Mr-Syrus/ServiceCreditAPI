@@ -1,6 +1,8 @@
 package com.mr_syrus.credit.api.controller;
 
+import com.mr_syrus.credit.api.entity.AuthorizationCodeEntity;
 import com.mr_syrus.credit.api.entity.UserEntity;
+import com.mr_syrus.credit.api.repository.AuthorizationCodeRepository;
 import com.mr_syrus.credit.api.repository.UserRepository;
 import com.mr_syrus.credit.api.service.MailVerificationService;
 import org.springframework.http.HttpStatus;
@@ -11,13 +13,15 @@ import java.util.Optional;
 
 
 @RestController
-public class UserController {
+public class AuthController {
 
     private final UserRepository userRepository;
     private final MailVerificationService mailVerificationService;
-    public UserController(UserRepository userRepository, MailVerificationService mailVerificationService) {
+    private final AuthorizationCodeRepository authorizationCodeRepository;
+    public AuthController(UserRepository userRepository, MailVerificationService mailVerificationService, AuthorizationCodeRepository authorizationCodeRepository) {
         this.userRepository = userRepository;
         this.mailVerificationService = mailVerificationService;
+        this.authorizationCodeRepository = authorizationCodeRepository;
     }
 
     public static class DtoAuthWithPassportAndMail {
@@ -35,13 +39,15 @@ public class UserController {
 
         UserEntity userEntity = optionalUserEntity.get();
 
-        if (userEntity.getMail() != dto.mail){
+        if (userEntity.getMail().equals(dto.mail)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Mail not found");
         }
 
         String code = mailVerificationService.sendVerificationCode(dto.mail);
 
+        AuthorizationCodeEntity authorizationCodeEntity = new AuthorizationCodeEntity(code, userEntity);
+        authorizationCodeRepository.save(authorizationCodeEntity);
 
-        return "code 200";
+        return authorizationCodeEntity.getId().toString();
     }
 }

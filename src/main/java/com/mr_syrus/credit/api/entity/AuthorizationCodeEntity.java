@@ -23,14 +23,14 @@ public class AuthorizationCodeEntity {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    private UserEntity userId;
+    private UserEntity user;
 
     protected AuthorizationCodeEntity() {
     }
 
-    public AuthorizationCodeEntity(String code, UserEntity userId) {
+    public AuthorizationCodeEntity(String code, UserEntity user) {
         this.code = code;
-        this.userId = userId;
+        this.user = user;
     }
 
     public UUID getId() { return id; }
@@ -41,7 +41,7 @@ public class AuthorizationCodeEntity {
 
     public LocalDateTime getDateTameEnd() { return dateTameEnd; }
 
-    public UserEntity getUserId() { return userId; }
+    public UserEntity getUserId() { return user; }
 
     @PrePersist
     protected void onCreate() {
