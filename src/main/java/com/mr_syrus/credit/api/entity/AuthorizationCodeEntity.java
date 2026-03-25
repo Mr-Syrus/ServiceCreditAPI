@@ -48,7 +48,4 @@ public class AuthorizationCodeEntity {
         dateTameStart = LocalDateTime.now();
         dateTameEnd = dateTameEnd.plusMinutes(3);
     }
-
-
-
 }

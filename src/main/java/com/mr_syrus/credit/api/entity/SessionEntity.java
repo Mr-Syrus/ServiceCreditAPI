@@ -31,7 +31,6 @@ public class SessionEntity {
     private String userAgent;
 
 
-    //конструктор
     public SessionEntity(UserEntity userId, String ipAddress, String userAgent) {
         this.sessionKey = TokenGeneratorUtil.generateSessionKey(128);
         this.userId = userId;

@@ -28,6 +28,22 @@ public class CreditEntity {
     }
 
     public void setName(String name) {
-        this.name = name;
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Credit name cannot be empty");
+        }
+
+        if (name.length() > 20) {
+            throw new IllegalArgumentException("Credit name must be less than 20 characters");
+        }
+
+        if (name.length() < 3) {
+            throw new IllegalArgumentException("Credit name must be at least 3 characters");
+        }
+
+        if (!name.matches("^[а-яА-Яa-zA-Z0-9\\s-]+$")) {
+            throw new IllegalArgumentException("Credit name can only contain letters, numbers, spaces and hyphens");
+        }
+
+        this.name = name.trim();
     }
 }

@@ -22,11 +22,14 @@ public class UserEntity {
     @Column(name = "phone_number", nullable = false, length = 11, unique = true)
     private String phone;
 
+    //статус
+    @Enumerated(EnumType.STRING)
     @Column(name = "rosfinmonitoring_status", nullable = false)
     private RosfinmonitoringStatus rosfinmonitoringStatus = RosfinmonitoringStatus.NOT_RESTRICTED;
 
     @Column(name = "deactivated", nullable = false)
     private Boolean deactivated = false;
+
 
     @Column(name = "first_name", nullable = false, length = 64)
     private String firstName;
@@ -158,9 +161,7 @@ public class UserEntity {
         return departmentCode;
     }
 
-    public RosfinmonitoringStatus setRosfinmonitoringStatus() {return rosfinmonitoringStatus; } //пересмотреть в случае декомпозиции микросервиса
 
-    public Boolean setDeactivated() {return deactivated; }
 
     public void setUsername(String username) {
         if (username == null || username.trim().isEmpty()) {
@@ -202,6 +203,20 @@ public class UserEntity {
             throw new IllegalArgumentException("Phone must contain 11 digits");
         }
         this.phone = cleanPhone;
+    }
+
+    public void setRosfinmonitoringStatus(RosfinmonitoringStatus rosfinmonitoringStatus) {
+        if (rosfinmonitoringStatus == null) {
+            throw new IllegalArgumentException("Rosfinmonitoring status cannot be null");
+        }
+        this.rosfinmonitoringStatus = rosfinmonitoringStatus;
+    }
+
+    public void setDeactivated(Boolean deactivated) {
+        if (deactivated == null) {
+            throw new IllegalArgumentException("Deactivated status cannot be null");
+        }
+        this.deactivated = deactivated;
     }
 
     public void setFirstName(String firstName) {

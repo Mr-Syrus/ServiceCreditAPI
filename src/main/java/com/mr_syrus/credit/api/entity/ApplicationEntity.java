@@ -17,7 +17,7 @@ public class ApplicationEntity {
     private UserEntity user;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 20)
+    @Column(name = "status", nullable = false)
     private ApplicationStatus status = ApplicationStatus.ON_REVIEW;
 
     @ManyToOne
