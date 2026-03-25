@@ -22,6 +22,12 @@ public class UserEntity {
     @Column(name = "phone_number", nullable = false, length = 11, unique = true)
     private String phone;
 
+    @Column(name = "rosfinmonitoring_status", nullable = false)
+    private RosfinmonitoringStatus rosfinmonitoringStatus = RosfinmonitoringStatus.NOT_RESTRICTED;
+
+    @Column(name = "deactivated", nullable = false)
+    private Boolean deactivated = false;
+
     @Column(name = "first_name", nullable = false, length = 64)
     private String firstName;
 
@@ -88,6 +94,8 @@ public class UserEntity {
         setDepartmentCode(departmentCode);
     }
 
+
+
     public Integer getId() { return id; }
 
     public String getUsername() {
@@ -105,6 +113,10 @@ public class UserEntity {
     public String getPhone() {
         return phone;
     }
+
+    public RosfinmonitoringStatus getRosfinmonitoringStatus() { return rosfinmonitoringStatus; } //пересмотреть в случае декомпозиции микросервиса
+
+    public Boolean getDeactivated() { return deactivated; } //пересмотреть в случае декомпозиции микросервиса
 
     public String getFirstName() {
         return firstName;
@@ -145,6 +157,10 @@ public class UserEntity {
     public String getDepartmentCode() {
         return departmentCode;
     }
+
+    public RosfinmonitoringStatus setRosfinmonitoringStatus() {return rosfinmonitoringStatus; } //пересмотреть в случае декомпозиции микросервиса
+
+    public Boolean setDeactivated() {return deactivated; }
 
     public void setUsername(String username) {
         if (username == null || username.trim().isEmpty()) {
