@@ -41,7 +41,7 @@ public class AuthorizationCodeEntity {
 
     public LocalDateTime getDateTameEnd() { return dateTameEnd; }
 
-    public UserEntity getUserId() { return user; }
+    public UserEntity getUser() { return user; }
 
     @PrePersist
     protected void onCreate() {

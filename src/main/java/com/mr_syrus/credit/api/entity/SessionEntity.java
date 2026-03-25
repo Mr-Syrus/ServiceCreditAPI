@@ -1,6 +1,7 @@
 package com.mr_syrus.credit.api.entity;
 
 
+import com.mr_syrus.credit.api.util.TokenGeneratorUtil;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -22,9 +23,6 @@ public class SessionEntity {
     @Column(name = "expires_at", nullable = false)
     private LocalDateTime expiresAt;
 
-    @Column(name = "last_activity")
-    private LocalDateTime lastActivity;
-
     @Column(name = "ip_address")
     private String ipAddress;
 
@@ -32,14 +30,10 @@ public class SessionEntity {
     @Column(name = "user_agent", length = 500)
     private String userAgent;
 
-    // Статус сессии
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    private SessionStatus status;
 
     //конструктор
-    public SessionEntity(String sessionKey, UserEntity userId, String ipAddress, String userAgent) {
-        this.sessionKey = sessionKey;
+    public SessionEntity(UserEntity userId, String ipAddress, String userAgent) {
+        this.sessionKey = TokenGeneratorUtil.generateSessionKey(128);
         this.userId = userId;
         this.ipAddress = ipAddress;
         this.userAgent = userAgent;
@@ -61,44 +55,17 @@ public class SessionEntity {
         return expiresAt;
     }
 
-    public LocalDateTime getLastActivity() {
-        return lastActivity;
-    }
+    public String getIpAddress() { return ipAddress; }
 
-    public void setLastActivity(LocalDateTime lastActivity) {
-        this.lastActivity = lastActivity;
-    }
+    public String getUserAgent() { return userAgent; }
 
-    public String getIpAddress() {
-        return ipAddress;
-    }
-
-    public String getUserAgent() {
-        return userAgent;
-    }
-
-    public SessionStatus getStatus() {
-        return status;
-    }
 
     // Автоматическая установка даты создания
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         expiresAt = createdAt.plusHours(2);
-        if (status == null) {
-            status = SessionStatus.ACTIVE;
-        }
     }
 
-    // Метод для обновления активности
-    public void updateActivity() {
-        this.lastActivity = LocalDateTime.now();
-    }
 
-    // Проверка, активна ли сессия
-    public boolean isValid() {
-        return status == SessionStatus.ACTIVE &&
-                LocalDateTime.now().isBefore(expiresAt);
-    }
 }
