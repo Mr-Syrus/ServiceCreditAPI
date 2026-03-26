@@ -10,11 +10,15 @@ import java.time.LocalDateTime;
 public class ApplicationEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
+
+    @ManyToOne
+    @JoinColumn(name = "passport_id", nullable = false)
+    private DocumentEntity passport;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
@@ -36,27 +40,7 @@ public class ApplicationEntity {
     @Column(name = "completion_date")
     private LocalDateTime completionDate;
 
-    // Паспортные данные
-    @Column(name = "passport_series", nullable = false, length = 4)
-    private String passportSeries;
 
-    @Column(name = "passport_number", nullable = false, length = 6)
-    private String passportNumber;
-
-    @Column(name = "birth_date", nullable = false)
-    private LocalDate birthDate;
-
-    @Column(name = "passport_issue_date", nullable = false)
-    private LocalDate passportIssueDate;
-
-    @Column(name = "passport_issued_by", nullable = false, columnDefinition = "TEXT")
-    private String passportIssuedBy;
-
-    @Column(name = "registration_address", nullable = false, columnDefinition = "TEXT")
-    private String registrationAddress;
-
-    @Column(name = "department_code", nullable = false, length = 7)
-    private String departmentCode;
 
     public ApplicationEntity(){
     }
@@ -66,14 +50,7 @@ public class ApplicationEntity {
             UserEntity user,
             CreditEntity credit,
             Integer creditTerm,
-            BigDecimal creditAmount,
-            String passportSeries,
-            String passportNumber,
-            LocalDate birthDate,
-            LocalDate passportIssueDate,
-            String passportIssuedBy,
-            String registrationAddress,
-            String departmentCode) {
+            BigDecimal creditAmount) {
         if (user == null) {
             throw new IllegalArgumentException("User cannot be null");
         }

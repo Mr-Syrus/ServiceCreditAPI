@@ -3,6 +3,7 @@ package com.mr_syrus.credit.api.entity;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -22,15 +23,22 @@ public class AuthorizationCodeEntity {
     private LocalDateTime dateTameEnd;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
 
     protected AuthorizationCodeEntity() {
     }
 
     public AuthorizationCodeEntity(String code, UserEntity user) {
-        this.code = code;
-        this.user = user;
+        this.code = requireNonBlank(code, "Street");
+        this.user = Objects.requireNonNull(user, "User cannot be null");
+    }
+
+    private static String requireNonBlank(String value, String fieldName) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(fieldName + " cannot be null or blank");
+        }
+        return value;
     }
 
     public UUID getId() { return id; }
