@@ -1,7 +1,6 @@
 package com.mr_syrus.credit.api.entity;
 
 import jakarta.persistence.*;
-
 import java.time.LocalDate;
 import java.util.Objects;
 
@@ -16,7 +15,7 @@ public class RegistrationEntity {
     private LocalDate date;
 
     @Column(name = "postal_index", nullable = false, length = 6)
-    private Integer postalIndex;
+    private String postalIndex;
 
     @Column(name = "migration_department", nullable = false, length = 300)
     private String migrationDepartment;
@@ -40,15 +39,15 @@ public class RegistrationEntity {
     private Integer flat;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private  UserEntity user;
+    @JoinColumn(name = "personal_data_id", nullable = false)
+    private PersonalDataEntity personalData;
 
     public RegistrationEntity() {
     }
 
     public RegistrationEntity(
             LocalDate date,
-            Integer postalIndex,
+            String postalIndex,
             String migrationDepartment,
             String region,
             String district,
@@ -56,32 +55,125 @@ public class RegistrationEntity {
             String street,
             String house,
             Integer flat,
-            UserEntity user
+            PersonalDataEntity personalData
     ) {
         this.date = Objects.requireNonNull(date, "Date cannot be null");
-        this.postalIndex = Objects.requireNonNull(postalIndex, "Index cannot be null");
-        this.migrationDepartment = requireNonBlank(migrationDepartment, "Migration department");
-        this.region = requireNonBlank(region, "Region");
-        this.district = requireNonBlank(district, "District");
-        this.city = requireNonBlank(city, "City");
-        this.street = requireNonBlank(street, "Street");
-        this.house = Objects.requireNonNull(house, "House cannot be null");
+
+        this.postalIndex = validateAndCleanPostalIndex(postalIndex);
+
+        if (migrationDepartment == null || migrationDepartment.isBlank()) {
+            throw new IllegalArgumentException("Migration department cannot be null or blank");
+        }
+        this.migrationDepartment = migrationDepartment;
+
+        if (region == null || region.isBlank()) {
+            throw new IllegalArgumentException("Region cannot be null or blank");
+        }
+        this.region = region;
+
+        if (district == null || district.isBlank()) {
+            throw new IllegalArgumentException("District cannot be null or blank");
+        }
+        this.district = district;
+
+        if (city == null || city.isBlank()) {
+            throw new IllegalArgumentException("City cannot be null or blank");
+        }
+        this.city = city;
+
+        if (street == null || street.isBlank()) {
+            throw new IllegalArgumentException("Street cannot be null or blank");
+        }
+        this.street = street;
+
+        if (house == null || house.isBlank()) {
+            throw new IllegalArgumentException("House cannot be null or blank");
+        }
+        this.house = house;
+
+        if (flat != null && flat <= 0) {
+            throw new IllegalArgumentException("Flat number must be positive");
+        }
         this.flat = flat;
-        this.user = Objects.requireNonNull(user, "User cannot be null");
+
+        this.personalData = Objects.requireNonNull(personalData, "Document cannot be null");
     }
 
-    private static String requireNonBlank(String value, String fieldName) {
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(fieldName + " cannot be null or blank");
+    private static String validateAndCleanPostalIndex(String rawPostalIndex) {
+        if (rawPostalIndex == null) {
+            throw new IllegalArgumentException("Postal index cannot be null");
         }
-        return value;
+        String cleaned = rawPostalIndex.replaceAll("[-\\s]", "");
+        if (cleaned.isEmpty()) {
+            throw new IllegalArgumentException("Postal index cannot be empty after removing delimiters");
+        }
+        if (cleaned.length() != 6) {
+            throw new IllegalArgumentException(
+                    "Postal index must be exactly 6 digits after removing delimiters, but got: " + cleaned.length()
+            );
+        }
+        if (!cleaned.matches("\\d+")) {
+            throw new IllegalArgumentException(
+                    "Postal index must contain only digits, but got: " + cleaned
+            );
+        }
+        return cleaned;
+    }
+
+    @PrePersist
+    private void prePersist() {
+        if (date == null) {
+            throw new IllegalArgumentException("Date cannot be null");
+        }
+
+        if (postalIndex == null) {
+            throw new IllegalStateException("Postal index cannot be null");
+        }
+        if (postalIndex.length() != 6) {
+            throw new IllegalStateException("Postal index must be exactly 6 digits");
+        }
+        if (!postalIndex.matches("\\d+")) {
+            throw new IllegalStateException("Postal index must contain only digits");
+        }
+
+        if (migrationDepartment == null || migrationDepartment.isBlank()) {
+            throw new IllegalStateException("Migration department cannot be null or blank");
+        }
+
+        if (region == null || region.isBlank()) {
+            throw new IllegalStateException("Region cannot be null or blank");
+        }
+
+        if (district == null || district.isBlank()) {
+            throw new IllegalStateException("District cannot be null or blank");
+        }
+
+        if (city == null || city.isBlank()) {
+            throw new IllegalStateException("City cannot be null or blank");
+        }
+
+        if (street == null || street.isBlank()) {
+            throw new IllegalStateException("Street cannot be null or blank");
+        }
+
+        if (house == null || house.isBlank()) {
+            throw new IllegalStateException("House cannot be null or blank");
+        }
+
+        if (flat != null && flat <= 0) {
+            throw new IllegalStateException("Flat number must be positive");
+        }
+
+        if (personalData == null) {
+            throw new IllegalStateException("Personal data cannot be null");
+        }
     }
 
     public Integer getId() { return id; }
 
     public LocalDate getDate() { return date; }
 
-    public Integer getPostalIndex() { return postalIndex; }
+    public String getPostalIndex() { return postalIndex; }
 
     public String getMigrationDepartment() { return migrationDepartment; }
 
@@ -97,6 +189,5 @@ public class RegistrationEntity {
 
     public Integer getFlat() { return flat; }
 
-    public UserEntity getUser() { return user; }
-
+    public PersonalDataEntity getPersonalData() { return personalData; }
 }

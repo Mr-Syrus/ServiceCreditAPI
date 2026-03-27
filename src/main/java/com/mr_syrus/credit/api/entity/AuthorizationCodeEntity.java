@@ -41,6 +41,12 @@ public class AuthorizationCodeEntity {
         return value;
     }
 
+    @PrePersist
+    protected void onCreate() {
+        dateTameStart = LocalDateTime.now();
+        dateTameEnd = dateTameEnd.plusMinutes(3);
+    }
+
     public UUID getId() { return id; }
 
     public String getCode() { return code; }
@@ -50,10 +56,4 @@ public class AuthorizationCodeEntity {
     public LocalDateTime getDateTameEnd() { return dateTameEnd; }
 
     public UserEntity getUser() { return user; }
-
-    @PrePersist
-    protected void onCreate() {
-        dateTameStart = LocalDateTime.now();
-        dateTameEnd = dateTameEnd.plusMinutes(3);
-    }
 }

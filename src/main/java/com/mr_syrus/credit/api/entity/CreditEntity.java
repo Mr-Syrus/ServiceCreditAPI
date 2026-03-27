@@ -9,7 +9,7 @@ public class CreditEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "name", nullable = false, length = 20)
+    @Column(name = "name", nullable = false, length = 50)
     private String name;
 
     public CreditEntity() {
@@ -32,7 +32,7 @@ public class CreditEntity {
             throw new IllegalArgumentException("Credit name cannot be empty");
         }
 
-        if (name.length() > 20) {
+        if (name.length() > 50) {
             throw new IllegalArgumentException("Credit name must be less than 20 characters");
         }
 
