@@ -4,6 +4,7 @@ package com.mr_syrus.credit.api.entity;
 import com.mr_syrus.credit.api.util.TokenGeneratorUtil;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Entity
 @Table(name = "sessions")
@@ -30,12 +31,41 @@ public class SessionEntity {
     @Column(name = "user_agent", length = 500)
     private String userAgent;
 
+    protected SessionEntity() {
+    }
 
-    public SessionEntity(UserEntity userId, String ipAddress, String userAgent) {
-        this.sessionKey = TokenGeneratorUtil.generateSessionKey(128);
-        this.userId = userId;
+    public SessionEntity(UserEntity userId,
+                         String ipAddress,
+                         String userAgent) {
+        this.sessionKey = Objects.requireNonNull(
+                TokenGeneratorUtil.generateSessionKey(128),
+                "Session key cannot be null"
+        );
+        this.userId = Objects.requireNonNull(userId, "User cannot be null");
         this.ipAddress = ipAddress;
         this.userAgent = userAgent;
+    }
+
+    @PrePersist
+    private void prePersist() {
+        if (sessionKey == null || sessionKey.isBlank()) {
+            throw new IllegalStateException("Session key cannot be null or blank");
+        }
+        if (userId == null) {
+            throw new IllegalStateException("User cannot be null");
+        }
+
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+
+        if (expiresAt == null) {
+            expiresAt = createdAt.plusHours(2);
+        }
+
+        if (expiresAt != null && expiresAt.isBefore(LocalDateTime.now())) {
+            throw new IllegalStateException("Session has already expired");
+        }
     }
 
     public String getSessionKey() {
@@ -57,14 +87,5 @@ public class SessionEntity {
     public String getIpAddress() { return ipAddress; }
 
     public String getUserAgent() { return userAgent; }
-
-
-    // Автоматическая установка даты создания
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        expiresAt = createdAt.plusHours(2);
-    }
-
 
 }
