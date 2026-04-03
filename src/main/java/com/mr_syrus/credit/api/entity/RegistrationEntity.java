@@ -11,6 +11,10 @@ public class RegistrationEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @ManyToOne
+    @JoinColumn(name = "personal_data_id", nullable = false)
+    private PersonalDataEntity personalData;
+
     @Column(name = "date", nullable = false)
     private LocalDate date;
 
@@ -38,14 +42,16 @@ public class RegistrationEntity {
     @Column(name = "flat")
     private Integer flat;
 
-    @ManyToOne
-    @JoinColumn(name = "personal_data_id", nullable = false)
-    private PersonalDataEntity personalData;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private RegistrationStatus registrationStatus;
+
 
     public RegistrationEntity() {
     }
 
     public RegistrationEntity(
+            PersonalDataEntity personalData,
             LocalDate date,
             String postalIndex,
             String migrationDepartment,
@@ -55,8 +61,10 @@ public class RegistrationEntity {
             String street,
             String house,
             Integer flat,
-            PersonalDataEntity personalData
+            RegistrationStatus registrationStatus
     ) {
+        this.personalData = Objects.requireNonNull(personalData, "Personal data cannot be null");
+
         this.date = Objects.requireNonNull(date, "Date cannot be null");
 
         this.postalIndex = validateAndCleanPostalIndex(postalIndex);
@@ -96,7 +104,7 @@ public class RegistrationEntity {
         }
         this.flat = flat;
 
-        this.personalData = Objects.requireNonNull(personalData, "Document cannot be null");
+        this.registrationStatus = Objects.requireNonNull(registrationStatus, "Registration status cannot be null");
     }
 
     private static String validateAndCleanPostalIndex(String rawPostalIndex) {
@@ -167,6 +175,10 @@ public class RegistrationEntity {
         if (personalData == null) {
             throw new IllegalStateException("Personal data cannot be null");
         }
+
+        if (registrationStatus == null) {
+            throw  new IllegalStateException("Registration status cannot be null");
+        }
     }
 
     public Integer getId() { return id; }
@@ -190,4 +202,6 @@ public class RegistrationEntity {
     public Integer getFlat() { return flat; }
 
     public PersonalDataEntity getPersonalData() { return personalData; }
+
+    public RegistrationStatus getRegistrationStatus() { return registrationStatus; }
 }

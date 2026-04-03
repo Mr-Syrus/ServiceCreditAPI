@@ -17,10 +17,10 @@ public class AuthorizationCodeEntity {
     private String code;
 
     @Column(name = "date_time_start", nullable = false)
-    private LocalDateTime dateTameStart;
+    private LocalDateTime dateTimeStart;
 
     @Column(name = "date_time_end", nullable = false)
-    private LocalDateTime dateTameEnd;
+    private LocalDateTime dateTimeEnd;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
@@ -30,30 +30,37 @@ public class AuthorizationCodeEntity {
     }
 
     public AuthorizationCodeEntity(String code, UserEntity user) {
-        this.code = requireNonBlank(code, "Street");
+        this.code = validateCode(code);
         this.user = Objects.requireNonNull(user, "User cannot be null");
     }
 
-    private static String requireNonBlank(String value, String fieldName) {
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(fieldName + " cannot be null or blank");
+    private static String validateCode(String code) {
+        if (code == null || code.isBlank()) {
+            throw new IllegalArgumentException("Authorization code cannot be null or blank");
         }
-        return value;
+        String trimmed = code.trim();
+        if (trimmed.length() != 6) {
+            throw new IllegalArgumentException("Authorization code must be exactly 6 characters");
+        }
+        if (!trimmed.matches("\\d{6}")) {
+            throw new IllegalArgumentException("Authorization code must contain only 6 digits");
+        }
+        return trimmed;
     }
 
     @PrePersist
     protected void onCreate() {
-        dateTameStart = LocalDateTime.now();
-        dateTameEnd = dateTameEnd.plusMinutes(3);
+        dateTimeStart = LocalDateTime.now();
+        dateTimeEnd = dateTimeStart.plusMinutes(3);
     }
 
     public UUID getId() { return id; }
 
     public String getCode() { return code; }
 
-    public LocalDateTime getDateTameStart() { return dateTameStart; }
+    public LocalDateTime getDateTameStart() { return dateTimeStart; }
 
-    public LocalDateTime getDateTameEnd() { return dateTameEnd; }
+    public LocalDateTime getDateTameEnd() { return dateTimeEnd; }
 
     public UserEntity getUser() { return user; }
 }

@@ -1,6 +1,8 @@
 package com.mr_syrus.credit.api.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -8,25 +10,25 @@ import java.util.Objects;
 @Entity
 @Table(name = "applications")
 public class ApplicationEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private UserEntity user;
+    @JoinColumn(name = "personal_data_id", nullable = false)
+    private PersonalDataEntity personalData;
 
-    @ManyToOne
-    @JoinColumn(name = "passport_id", nullable = false)
-    private PersonalDataEntity passport;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    private ApplicationStatus status = ApplicationStatus.ON_REVIEW;
+    @OneToOne(mappedBy = "application", cascade = CascadeType.PERSIST)
+    private ScoringEntity scoring;
 
     @ManyToOne
     @JoinColumn(name = "credit_id", nullable = false)
     private CreditEntity credit;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private ApplicationStatus status = ApplicationStatus.ON_REVIEW;
 
     @Column(name = "credit_term", nullable = false)
     private Integer creditTerm;
@@ -34,23 +36,21 @@ public class ApplicationEntity {
     @Column(name = "credit_amount", nullable = false, precision = 10, scale = 2)
     private BigDecimal creditAmount;
 
-    @Column(name = "created_date", nullable = false, updatable = false)
-    private LocalDateTime createdDate;
+    @CreationTimestamp
+    @Column(name = "created_date_time", nullable = false, updatable = false)
+    private LocalDateTime createdDateTime;
 
-    @Column(name = "completion_date")
-    private LocalDateTime completionDate;
+    @Column(name = "completion_date_time")
+    private LocalDateTime completionDateTime;
 
-    public ApplicationEntity(){
+    public ApplicationEntity() {
     }
 
-    public ApplicationEntity(
-            UserEntity user,
-            PersonalDataEntity passport,
-            CreditEntity credit,
-            Integer creditTerm,
-            BigDecimal creditAmount) {
-        this.user = Objects.requireNonNull(user, "User cannot be null");
-        this.passport = Objects.requireNonNull(passport, "Passport cannot be null");
+    public ApplicationEntity(PersonalDataEntity personalData,
+                             CreditEntity credit,
+                             Integer creditTerm,
+                             BigDecimal creditAmount) {
+        this.personalData = Objects.requireNonNull(personalData, "Personal data cannot be null");
         this.credit = Objects.requireNonNull(credit, "Credit cannot be null");
 
         if (creditTerm == null || creditTerm <= 0) {
@@ -66,11 +66,8 @@ public class ApplicationEntity {
 
     @PrePersist
     private void prePersist() {
-        if (user == null) {
-            throw new IllegalStateException("User cannot be null");
-        }
-        if (passport == null) {
-            throw new IllegalStateException("Passport cannot be null");
+        if (personalData == null) {
+            throw new IllegalStateException("Personal data cannot be null");
         }
         if (credit == null) {
             throw new IllegalStateException("Credit cannot be null");
@@ -84,43 +81,26 @@ public class ApplicationEntity {
         if (status == null) {
             throw new IllegalStateException("Status cannot be null");
         }
-
-        if (createdDate == null) {
-            createdDate = LocalDateTime.now();
-        }
     }
 
     public Long getId() {
         return id;
     }
 
-    public UserEntity getUser() {
-        return user;
+    public PersonalDataEntity getPersonalData() {
+        return personalData;
     }
 
-    public PersonalDataEntity getPassport() {
-        return passport;
-    }
-
-    public ApplicationStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(ApplicationStatus newStatus) {
-        if (newStatus == null) {
-            throw new IllegalArgumentException("Status cannot be null");
-        }
-        if (this.status == ApplicationStatus.APPROVED || this.status == ApplicationStatus.REJECTED) {
-            throw new IllegalStateException("Cannot change status of completed application");
-        }
-        this.status = newStatus;
-        if (newStatus == ApplicationStatus.APPROVED || newStatus == ApplicationStatus.REJECTED) {
-            this.completionDate = LocalDateTime.now();
-        }
+    public ScoringEntity getScoring() {
+        return scoring;
     }
 
     public CreditEntity getCredit() {
         return credit;
+    }
+
+    public ApplicationStatus getStatus() {
+        return status;
     }
 
     public Integer getCreditTerm() {
@@ -131,11 +111,35 @@ public class ApplicationEntity {
         return creditAmount;
     }
 
-    public LocalDateTime getCreatedDate() {
-        return createdDate;
+    public LocalDateTime getCreatedDateTime() {
+        return createdDateTime;
     }
 
-    public LocalDateTime getCompletionDate() {
-        return completionDate;
+    public LocalDateTime getCompletionDateTime() {
+        return completionDateTime;
+    }
+
+    public void setStatus(ApplicationStatus newStatus) {
+        if (newStatus == null) {
+            throw new IllegalArgumentException("Status cannot be null");
+        }
+        if (this.status == ApplicationStatus.APPROVED || this.status == ApplicationStatus.REJECTED) {
+            throw new IllegalStateException("Cannot change status of completed application");
+        }
+        this.status = newStatus;
+        if ((newStatus == ApplicationStatus.APPROVED || newStatus == ApplicationStatus.REJECTED)
+                && this.completionDateTime == null) {
+            this.completionDateTime = LocalDateTime.now();
+        }
+    }
+
+    public void setScoring(ScoringEntity scoring) {
+        if (scoring == null) {
+            throw new IllegalArgumentException("Scoring cannot be null");
+        }
+        if (scoring.getApplication() != this) {
+            throw new IllegalArgumentException("Scoring is not associated with this application");
+        }
+        this.scoring = scoring;
     }
 }

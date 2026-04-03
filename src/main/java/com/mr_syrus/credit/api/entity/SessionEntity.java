@@ -31,8 +31,12 @@ public class SessionEntity {
     @Column(name = "user_agent", length = 500)
     private String userAgent;
 
+    protected SessionEntity() {
+    }
 
-    public SessionEntity(UserEntity userId, String ipAddress, String userAgent) {
+    public SessionEntity(UserEntity userId,
+                         String ipAddress,
+                         String userAgent) {
         this.sessionKey = Objects.requireNonNull(
                 TokenGeneratorUtil.generateSessionKey(128),
                 "Session key cannot be null"
@@ -55,7 +59,7 @@ public class SessionEntity {
             createdAt = LocalDateTime.now();
         }
 
-        if (expiresAt == null && createdAt != null) {
+        if (expiresAt == null) {
             expiresAt = createdAt.plusHours(2);
         }
 

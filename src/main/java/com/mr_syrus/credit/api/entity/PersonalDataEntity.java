@@ -1,27 +1,25 @@
 package com.mr_syrus.credit.api.entity;
 
-
 import jakarta.persistence.*;
-
 import java.time.LocalDate;
 import java.util.Objects;
 
 @Entity
-@Table(name = "documents")
+@Table(name = "personal_data")
 public class PersonalDataEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @OneToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "rosfinmonitoring_status", nullable = false)
     private RosfinmonitoringStatus rosfinmonitoringStatus = RosfinmonitoringStatus.NOT_RESTRICTED;
 
-    //паспортные данные
+    // паспортные данные
     @Column(name = "passport_series", nullable = false, length = 4)
     private String passportSeries;
 
@@ -37,8 +35,7 @@ public class PersonalDataEntity {
     @Column(name = "passport_issue_date", nullable = false)
     private LocalDate passportIssueDate;
 
-    //личностные данные
-
+    // личностные данные
     @Column(name = "first_name", nullable = false, length = 64)
     private String firstName;
 
@@ -61,27 +58,26 @@ public class PersonalDataEntity {
     @Column(name = "snils", nullable = false, length = 11)
     private String snils;
 
-
     public PersonalDataEntity() {
     }
 
     public PersonalDataEntity(
-        UserEntity user,
-        RosfinmonitoringStatus rosfinmonitoringStatus,
-        String passportSeries,
-        String passportNumber,
-        String passportIssuedBy,
-        String departmentCode,
-        LocalDate passportIssueDate,
-        String firstName,
-        String lastName,
-        String middleName,
-        GenderStatus gender,
-        LocalDate birthDate,
-        String inn,
-        String snils
+            UserEntity user,
+            RosfinmonitoringStatus rosfinmonitoringStatus,
+            String passportSeries,
+            String passportNumber,
+            String passportIssuedBy,
+            String departmentCode,
+            LocalDate passportIssueDate,
+            String firstName,
+            String lastName,
+            String middleName,
+            GenderStatus gender,
+            LocalDate birthDate,
+            String inn,
+            String snils
     ) {
-        this.user = user;
+        setUser(user);
         this.rosfinmonitoringStatus = rosfinmonitoringStatus != null ? rosfinmonitoringStatus : RosfinmonitoringStatus.NOT_RESTRICTED;
         this.passportSeries = validateAndCleanPassportSeries(passportSeries);
         this.passportNumber = validateAndCleanPassportNumber(passportNumber);
@@ -95,7 +91,6 @@ public class PersonalDataEntity {
         this.birthDate = Objects.requireNonNull(birthDate, "Birth date cannot be null");
         this.inn = validateAndCleanInn(inn);
         this.snils = validateAndCleanSnils(snils);
-
     }
 
     private static String requireNonBlank(String value, String fieldName) {
@@ -193,9 +188,8 @@ public class PersonalDataEntity {
     @PrePersist
     private void prePersist() {
         if (rosfinmonitoringStatus == null) {
-            throw new IllegalArgumentException("Rosfinmonitoring status cannot be null");
+            throw new IllegalStateException("Rosfinmonitoring status cannot be null");
         }
-
         if (passportSeries == null) {
             throw new IllegalStateException("Passport series cannot be null");
         }
@@ -205,7 +199,6 @@ public class PersonalDataEntity {
         if (!passportSeries.matches("\\d+")) {
             throw new IllegalStateException("Passport series must contain only digits");
         }
-
         if (passportNumber == null) {
             throw new IllegalStateException("Passport number cannot be null");
         }
@@ -215,11 +208,9 @@ public class PersonalDataEntity {
         if (!passportNumber.matches("\\d+")) {
             throw new IllegalStateException("Passport number must contain only digits");
         }
-
         if (passportIssuedBy == null || passportIssuedBy.isBlank()) {
             throw new IllegalStateException("Passport issued by cannot be null or blank");
         }
-
         if (departmentCode == null) {
             throw new IllegalStateException("Department code cannot be null");
         }
@@ -229,27 +220,21 @@ public class PersonalDataEntity {
         if (!departmentCode.matches("\\d+")) {
             throw new IllegalStateException("Department code must contain only digits");
         }
-
         if (passportIssueDate == null) {
             throw new IllegalStateException("Passport issue date cannot be null");
         }
-
         if (firstName == null || firstName.isBlank()) {
             throw new IllegalStateException("First name cannot be null or blank");
         }
-
         if (lastName == null || lastName.isBlank()) {
             throw new IllegalStateException("Last name cannot be null or blank");
         }
-
         if (gender == null) {
             throw new IllegalStateException("Gender cannot be null");
         }
-
         if (birthDate == null) {
             throw new IllegalStateException("Birth date cannot be null");
         }
-
         if (inn == null) {
             throw new IllegalStateException("INN cannot be null");
         }
@@ -259,7 +244,6 @@ public class PersonalDataEntity {
         if (!inn.matches("\\d+")) {
             throw new IllegalStateException("INN must contain only digits");
         }
-
         if (snils == null) {
             throw new IllegalStateException("SNILS cannot be null");
         }
@@ -271,38 +255,77 @@ public class PersonalDataEntity {
         }
     }
 
-    public Integer getId() { return id; }
+    public Integer getId() {
+        return id;
+    }
 
-    public UserEntity getUser() { return user; }
+    public UserEntity getUser() {
+        return user;
+    }
 
-    public RosfinmonitoringStatus getRosfinmonitoringStatus() { return rosfinmonitoringStatus; }
+    public void setUser(UserEntity user) {
+        if (user == null) {
+            throw new IllegalArgumentException("User cannot be null");
+        }
+        this.user = user;
+        if (user.getPersonalData() != this) {
+            user.setPersonalData(this);
+        }
+    }
+
+    public RosfinmonitoringStatus getRosfinmonitoringStatus() {
+        return rosfinmonitoringStatus;
+    }
 
     public void setRosfinmonitoringStatus(RosfinmonitoringStatus rosfinmonitoringStatus) {
         this.rosfinmonitoringStatus = rosfinmonitoringStatus;
     }
 
-    public String getPassportSeries() { return passportSeries; }
+    public String getPassportSeries() {
+        return passportSeries;
+    }
 
-    public String getPassportNumber() { return passportNumber; }
+    public String getPassportNumber() {
+        return passportNumber;
+    }
 
-    public String getPassportIssuedBy() { return passportIssuedBy; }
+    public String getPassportIssuedBy() {
+        return passportIssuedBy;
+    }
 
-    public String getDepartmentCode() { return departmentCode; }
+    public String getDepartmentCode() {
+        return departmentCode;
+    }
 
-    public LocalDate getPassportIssueDate() { return  passportIssueDate; }
+    public LocalDate getPassportIssueDate() {
+        return passportIssueDate;
+    }
 
-    public String getFirstName() {return firstName; }
+    public String getFirstName() {
+        return firstName;
+    }
 
-    public String getLastName() { return lastName; }
+    public String getLastName() {
+        return lastName;
+    }
 
-    public String getMiddleName() { return middleName; }
+    public String getMiddleName() {
+        return middleName;
+    }
 
-    public GenderStatus getGender() { return gender; }
+    public GenderStatus getGender() {
+        return gender;
+    }
 
-    public LocalDate getBirthDate() { return birthDate; }
+    public LocalDate getBirthDate() {
+        return birthDate;
+    }
 
-    public String getInn() { return inn; }
+    public String getInn() {
+        return inn;
+    }
 
-    public String getSnils() { return snils; }
-
+    public String getSnils() {
+        return snils;
+    }
 }

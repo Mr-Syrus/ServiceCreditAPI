@@ -13,12 +13,4 @@ public class ApplicationController {
         this.applicationRepository = applicationRepository;
     }
 
-    public static class DtoCreateApplication {
-        private
-    }
-
-    @PostMapping("/create_application")
-    public String create_application() {
-
-    }
 }
