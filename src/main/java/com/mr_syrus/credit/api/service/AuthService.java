@@ -7,7 +7,7 @@ import com.mr_syrus.credit.api.entity.UserEntity;
 import com.mr_syrus.credit.api.repository.AuthorizationCodeRepository;
 import com.mr_syrus.credit.api.repository.PersonalDataRepository;
 import com.mr_syrus.credit.api.repository.SessionRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -34,15 +34,15 @@ public class AuthService {
     }
 
     @Transactional
-    public String sendCode(String email, String passportSeries, String passportNumber) {
+    public String sendCode(String mail, String passportSeries, String passportNumber) {
         // Ищем активную запись паспортных данных
         PersonalDataEntity personalData = personalDataRepository
-                .findActiveByEmailAndPassportData(email, passportSeries, passportNumber)
+                .findActiveByMailAndPassportData(mail, passportSeries, passportNumber)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
                         "Passport data not found or not active"));
 
         // Генерация и сохранение кода
-        String code = mailVerificationService.sendVerificationCode(email);
+        String code = mailVerificationService.sendVerificationCode(mail);
         AuthorizationCodeEntity authCode = new AuthorizationCodeEntity(code, personalData.getUser());
         authorizationCodeRepository.save(authCode);
 

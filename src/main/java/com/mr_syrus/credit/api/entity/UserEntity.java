@@ -83,13 +83,13 @@ public class UserEntity {
         }
 
         if (mail == null || mail.trim().isEmpty()) {
-            throw new IllegalStateException("Email cannot be empty");
+            throw new IllegalStateException("Mail cannot be empty");
         }
         if (!mail.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
-            throw new IllegalStateException("Invalid email format");
+            throw new IllegalStateException("Invalid mail format");
         }
         if (mail.length() > 254) {
-            throw new IllegalStateException("Email must be less than 254 characters");
+            throw new IllegalStateException("Mail must be less than 254 characters");
         }
 
         if (passwordHash == null || passwordHash.trim().isEmpty()) {
@@ -125,13 +125,13 @@ public class UserEntity {
 
     public void setMail(String mail) {
         if (mail == null || mail.trim().isEmpty()) {
-            throw new IllegalArgumentException("Email cannot be empty");
+            throw new IllegalArgumentException("Mail cannot be empty");
         }
         if (!mail.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
-            throw new IllegalArgumentException("Invalid email format");
+            throw new IllegalArgumentException("Invalid mail format");
         }
         if (mail.length() > 254) {
-            throw new IllegalArgumentException("Email must be less than 254 characters");
+            throw new IllegalArgumentException("Mail must be less than 254 characters");
         }
         this.mail = mail.trim();
     }

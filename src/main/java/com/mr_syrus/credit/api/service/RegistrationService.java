@@ -44,7 +44,7 @@ public class RegistrationService {
         if (userRepository.existsByUsername(dto.getUsername())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username already exists");
         }
-        if (userRepository.existsByMail(dto.getEmail())) {
+        if (userRepository.existsByMail(dto.getMail())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email already exists");
         }
         if (userRepository.existsByPhone(dto.getPhone())) {
@@ -61,7 +61,7 @@ public class RegistrationService {
         String hashedPassword = passwordEncoder.encode(dto.getPassword());
         UserEntity user = new UserEntity(
                 dto.getUsername(),
-                dto.getEmail(),
+                dto.getMail(),
                 hashedPassword,
                 dto.getPhone(),
                 false, // active = false до подтверждения
@@ -109,7 +109,7 @@ public class RegistrationService {
         registrationRepository.save(registration);
 
         //отправка кода подтверждения
-        String code = mailService.sendVerificationCode(dto.getEmail());
+        String code = mailService.sendVerificationCode(dto.getMail());
         AuthorizationCodeEntity authCode = new AuthorizationCodeEntity(code, user);
         codeRepository.save(authCode);
 
