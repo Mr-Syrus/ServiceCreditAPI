@@ -15,7 +15,7 @@ public class SessionEntity {
     private String sessionKey;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private UserEntity userId;
 
     @Column(name = "created_at", nullable = false)
