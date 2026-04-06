@@ -11,9 +11,12 @@ public class PersonalDataEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @OneToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
+
+    @Column(name = "active", nullable = false)
+    private Boolean active = true;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "rosfinmonitoring_status", nullable = false)
@@ -77,7 +80,7 @@ public class PersonalDataEntity {
             String inn,
             String snils
     ) {
-        setUser(user);
+        this.user = user;
         this.rosfinmonitoringStatus = rosfinmonitoringStatus != null ? rosfinmonitoringStatus : RosfinmonitoringStatus.NOT_RESTRICTED;
         this.passportSeries = validateAndCleanPassportSeries(passportSeries);
         this.passportNumber = validateAndCleanPassportNumber(passportNumber);
@@ -268,9 +271,12 @@ public class PersonalDataEntity {
             throw new IllegalArgumentException("User cannot be null");
         }
         this.user = user;
-        if (user.getPersonalData() != this) {
-            user.setPersonalData(this);
-        }
+    }
+
+    public Boolean getActive() { return active; }
+
+    public void setActive(Boolean active) {
+        this.active = active;
     }
 
     public RosfinmonitoringStatus getRosfinmonitoringStatus() {

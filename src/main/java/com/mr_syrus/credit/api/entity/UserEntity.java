@@ -2,6 +2,8 @@ package com.mr_syrus.credit.api.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -31,8 +33,8 @@ public class UserEntity {
     @JoinColumn(name = "role_id", nullable = false)
     private RoleEntity role;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
-    private PersonalDataEntity personalData;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<PersonalDataEntity> personalData = new ArrayList<>();
 
     protected UserEntity() {
     }
@@ -51,14 +53,12 @@ public class UserEntity {
         setRole(role);
     }
 
-    public void setPersonalData(PersonalDataEntity personalData) {
+    public void addPersonalData(PersonalDataEntity personalData) {
         if (personalData == null) {
             throw new IllegalArgumentException("Personal data cannot be null");
         }
-        this.personalData = personalData;
-        if (personalData.getUser() != this) {
-            personalData.setUser(this);
-        }
+        this.personalData.add(personalData);
+        personalData.setUser(this);
     }
 
     public RoleEntity getRole() {
@@ -185,7 +185,7 @@ public class UserEntity {
         return active;
     }
 
-    public PersonalDataEntity getPersonalData() {
+    public List<PersonalDataEntity> getPersonalData() {
         return personalData;
     }
 }

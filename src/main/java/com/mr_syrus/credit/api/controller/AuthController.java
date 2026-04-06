@@ -1,9 +1,11 @@
 package com.mr_syrus.credit.api.controller;
 
 import com.mr_syrus.credit.api.entity.AuthorizationCodeEntity;
+import com.mr_syrus.credit.api.entity.PersonalDataEntity;
 import com.mr_syrus.credit.api.entity.SessionEntity;
 import com.mr_syrus.credit.api.entity.UserEntity;
 import com.mr_syrus.credit.api.repository.AuthorizationCodeRepository;
+import com.mr_syrus.credit.api.repository.PersonalDataRepository;
 import com.mr_syrus.credit.api.repository.SessionRepository;
 import com.mr_syrus.credit.api.repository.UserRepository;
 import com.mr_syrus.credit.api.service.MailVerificationService;
@@ -25,16 +27,19 @@ public class AuthController {
     private final MailVerificationService mailVerificationService;
     private final AuthorizationCodeRepository authorizationCodeRepository;
     private final SessionRepository sessionRepository;
+    private final PersonalDataRepository personalDataRepository;
 
     public AuthController(
             UserRepository userRepository,
             MailVerificationService mailVerificationService,
             AuthorizationCodeRepository authorizationCodeRepository,
-            SessionRepository sessionRepository) {
+            SessionRepository sessionRepository,
+            PersonalDataRepository personalDataRepository) {
         this.userRepository = userRepository;
         this.mailVerificationService = mailVerificationService;
         this.authorizationCodeRepository = authorizationCodeRepository;
         this.sessionRepository = sessionRepository;
+        this.personalDataRepository = personalDataRepository;
     }
 
     public static class DtoSendCode {
@@ -50,19 +55,18 @@ public class AuthController {
 
     @PostMapping("/send_code")
     public String sendCode(@RequestBody DtoSendCode dto) {
-        Optional<UserEntity> optionalUserEntity = userRepository.findBySeriesAndNumber(dto.passportSeries, dto.passportNumber);
-        if (optionalUserEntity.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found");
-        }
+        // Ищем активную запись паспортных данных (уникальность гарантирована)
+        PersonalDataEntity personalData = personalDataRepository
+                .findActiveByEmailAndPassportData(dto.passportSeries, dto.passportNumber, dto.mail)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Паспортные данные не найдены или не активны"));
 
-        UserEntity userEntity = optionalUserEntity.get();
+        UserEntity userEntity = personalData.getUser();
 
-        if (userEntity.getMail().equals(dto.mail)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Mail not found");
+        if (!userEntity.getMail().equals(dto.mail)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Указанный email не соответствует владельцу паспорта");
         }
 
         String code = mailVerificationService.sendVerificationCode(dto.mail);
-
         AuthorizationCodeEntity authorizationCodeEntity = new AuthorizationCodeEntity(code, userEntity);
         authorizationCodeRepository.save(authorizationCodeEntity);
 
@@ -93,7 +97,7 @@ public class AuthController {
         Cookie cookie = new Cookie("session", sessionEntity.getSessionKey());
         cookie.setHttpOnly(true);
         cookie.setPath("/");
-        cookie.setMaxAge(60 * 60 * 2);
+        cookie.setMaxAge(60 * 60 * 2); //2 часа
 
         response.addCookie(cookie);
 
