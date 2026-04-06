@@ -8,13 +8,7 @@ import org.springframework.data.repository.query.*;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
-    @Query(
-            "SELECT u FROM UserEntity u " +
-            "WHERE u.passportSeries = :passport_series " +
-            "AND u.passportNumber = :passport_number"
-    )
-    Optional<UserEntity> findBySeriesAndNumber( //NullPointerException
-            @Param("passport_series") String series,
-            @Param("passport_number") String number
-    );
+    boolean existsByUsername(String username);
+    boolean existsByMail(String mail);
+    boolean existsByPhone(String phone);
 }
