@@ -1,106 +1,64 @@
 package com.mr_syrus.credit.api.controller;
 
-import com.mr_syrus.credit.api.entity.AuthorizationCodeEntity;
-import com.mr_syrus.credit.api.entity.PersonalDataEntity;
 import com.mr_syrus.credit.api.entity.SessionEntity;
-import com.mr_syrus.credit.api.entity.UserEntity;
-import com.mr_syrus.credit.api.repository.AuthorizationCodeRepository;
-import com.mr_syrus.credit.api.repository.PersonalDataRepository;
-import com.mr_syrus.credit.api.repository.SessionRepository;
-import com.mr_syrus.credit.api.repository.UserRepository;
-import com.mr_syrus.credit.api.service.MailVerificationService;
+import com.mr_syrus.credit.api.service.AuthService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
-
-import java.util.Optional;
-import java.util.UUID;
-
 
 @RestController
 public class AuthController {
 
-    private final UserRepository userRepository;
-    private final MailVerificationService mailVerificationService;
-    private final AuthorizationCodeRepository authorizationCodeRepository;
-    private final SessionRepository sessionRepository;
-    private final PersonalDataRepository personalDataRepository;
+    private final AuthService authService;
 
-    public AuthController(
-            UserRepository userRepository,
-            MailVerificationService mailVerificationService,
-            AuthorizationCodeRepository authorizationCodeRepository,
-            SessionRepository sessionRepository,
-            PersonalDataRepository personalDataRepository) {
-        this.userRepository = userRepository;
-        this.mailVerificationService = mailVerificationService;
-        this.authorizationCodeRepository = authorizationCodeRepository;
-        this.sessionRepository = sessionRepository;
-        this.personalDataRepository = personalDataRepository;
+    public AuthController(AuthService authService) {
+        this.authService = authService;
     }
 
     public static class DtoSendCode {
         private String passportSeries;
         private String passportNumber;
         private String mail;
+
+        public String getPassportSeries() { return passportSeries; }
+        public void setPassportSeries(String passportSeries) { this.passportSeries = passportSeries; }
+        public String getPassportNumber() { return passportNumber; }
+        public void setPassportNumber(String passportNumber) { this.passportNumber = passportNumber; }
+        public String getMail() { return mail; }
+        public void setMail(String mail) { this.mail = mail; }
     }
 
     public static class DtoAuth {
         private String code;
         private String codeId;
+
+        public String getCode() { return code; }
+        public void setCode(String code) { this.code = code; }
+        public String getCodeId() { return codeId; }
+        public void setCodeId(String codeId) { this.codeId = codeId; }
     }
 
     @PostMapping("/send_code")
     public String sendCode(@RequestBody DtoSendCode dto) {
-        // Ищем активную запись паспортных данных (уникальность гарантирована)
-        PersonalDataEntity personalData = personalDataRepository
-                .findActiveByEmailAndPassportData(dto.passportSeries, dto.passportNumber, dto.mail)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Паспортные данные не найдены или не активны"));
-
-        UserEntity userEntity = personalData.getUser();
-
-        if (!userEntity.getMail().equals(dto.mail)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Указанный email не соответствует владельцу паспорта");
-        }
-
-        String code = mailVerificationService.sendVerificationCode(dto.mail);
-        AuthorizationCodeEntity authorizationCodeEntity = new AuthorizationCodeEntity(code, userEntity);
-        authorizationCodeRepository.save(authorizationCodeEntity);
-
-        return authorizationCodeEntity.getId().toString();
+        return authService.sendCode(dto.getMail(), dto.getPassportSeries(), dto.getPassportNumber());
     }
 
     @PostMapping("/auth")
-    public String auth(@RequestBody DtoAuth dto, HttpServletRequest request,
-                     HttpServletResponse response) {
-        UUID codeId;
-        try {
-            codeId = UUID.fromString(dto.codeId);
-        } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid codeId");
-        }
-
-        Optional<AuthorizationCodeEntity> optionalAuthorizationCodeEntity = authorizationCodeRepository.findById(codeId);
-        if (optionalAuthorizationCodeEntity.isEmpty()) {
-            throw  new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found");
-        }
-
-        AuthorizationCodeEntity authorizationCodeEntity = optionalAuthorizationCodeEntity.get();
+    public String auth(@RequestBody DtoAuth dto,
+                       HttpServletRequest request,
+                       HttpServletResponse response) {
         String ipAddress = request.getRemoteAddr();
         String userAgent = request.getHeader("User-Agent");
-        SessionEntity sessionEntity = new SessionEntity(authorizationCodeEntity.getUser(), ipAddress, userAgent);
-        sessionRepository.save(sessionEntity);
 
-        Cookie cookie = new Cookie("session", sessionEntity.getSessionKey());
+        SessionEntity session = authService.authenticate(dto.getCodeId(), dto.getCode(), ipAddress, userAgent);
+
+        Cookie cookie = new Cookie("session", session.getSessionKey());
         cookie.setHttpOnly(true);
         cookie.setPath("/");
-        cookie.setMaxAge(60 * 60 * 2); //2 часа
-
+        cookie.setMaxAge(60 * 60 * 2); // 2 часа
         response.addCookie(cookie);
 
-        return "200 ok";
+        return "OK";
     }
 }

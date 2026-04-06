@@ -7,11 +7,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class ApplicationController {
+
     private final ApplicationRepository applicationRepository;
 
     public ApplicationController(ApplicationRepository applicationRepository) {
         this.applicationRepository = applicationRepository;
     }
-
-
 }

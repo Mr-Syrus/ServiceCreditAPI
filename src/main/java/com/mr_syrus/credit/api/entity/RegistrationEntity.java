@@ -15,6 +15,9 @@ public class RegistrationEntity {
     @JoinColumn(name = "personal_data_id", nullable = false)
     private PersonalDataEntity personalData;
 
+    @Column(name = "active", nullable = false)
+    private Boolean active = Boolean.TRUE;
+
     @Column(name = "date", nullable = false)
     private LocalDate date;
 
@@ -182,6 +185,15 @@ public class RegistrationEntity {
     }
 
     public Integer getId() { return id; }
+
+    public Boolean getActive() {return active; }
+
+    public void setActive(Boolean active) {
+        if (active == null) {
+            throw new IllegalArgumentException("Active status cannot be null");
+        }
+        this.active = active;
+    }
 
     public LocalDate getDate() { return date; }
 

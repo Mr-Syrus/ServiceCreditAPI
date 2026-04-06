@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.*;
 import java.util.Optional;
 
 public interface PersonalDataRepository extends JpaRepository<PersonalDataEntity, Integer> {
+
     @Query("SELECT pd FROM PersonalDataEntity pd " +
             "JOIN pd.user u WHERE u.email = :email " +
             "AND pd.passportSeries = :series " +
@@ -16,4 +17,11 @@ public interface PersonalDataRepository extends JpaRepository<PersonalDataEntity
             @Param("email") String email,
             @Param("passport_series") String series,
             @Param("passport_number") String number);
+
+    @Query("SELECT COUNT(pd) > 0 FROM PersonalDataEntity pd " +
+            "WHERE pd.passportSeries = :series " +
+            "AND pd.passportNumber = :number AND pd.active = true")
+    boolean existsActiveByPassport(
+            @Param("series") String series,
+            @Param("number") String number);
 }

@@ -58,9 +58,9 @@ public class AuthorizationCodeEntity {
 
     public String getCode() { return code; }
 
-    public LocalDateTime getDateTameStart() { return dateTimeStart; }
+    public LocalDateTime getDateTimeStart() { return dateTimeStart; }
 
-    public LocalDateTime getDateTameEnd() { return dateTimeEnd; }
+    public LocalDateTime getDateTimeEnd() { return dateTimeEnd; }
 
     public UserEntity getUser() { return user; }
 }
