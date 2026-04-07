@@ -16,6 +16,8 @@ public class RegistrationController {
 
     @PostMapping("/register")
     public String register( @RequestBody RegistrationDto dto) {
+        System.out.println("REGISTER CONTROLLER CALLED");
         return registrationService.register(dto);
     }
+
 }

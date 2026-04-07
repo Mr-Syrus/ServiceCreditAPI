@@ -5,7 +5,6 @@ import com.mr_syrus.credit.api.entity.*;
 import com.mr_syrus.credit.api.repository.*;
 import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -20,7 +19,7 @@ public class RegistrationService {
     private final RoleRepository roleRepository;
     private final AuthorizationCodeRepository codeRepository;
     private final MailVerificationService mailService;
-    private final BCryptPasswordEncoder passwordEncoder;
+    private final SimplePasswordEncoder passwordEncoder;
 
     public RegistrationService(UserRepository userRepository,
                                PersonalDataRepository personalDataRepository,
@@ -28,7 +27,7 @@ public class RegistrationService {
                                RoleRepository roleRepository,
                                AuthorizationCodeRepository codeRepository,
                                MailVerificationService mailService,
-                               BCryptPasswordEncoder passwordEncoder) {
+                               SimplePasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.personalDataRepository = personalDataRepository;
         this.registrationRepository = registrationRepository;
