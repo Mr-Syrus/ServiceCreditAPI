@@ -1,6 +1,7 @@
 package com.mr_syrus.credit.api.service;
 
-import com.mr_syrus.credit.api.dto.RegistrationDto;
+import com.mr_syrus.credit.api.dto.CodeVerificationDto;
+import com.mr_syrus.credit.api.dto.RegistrationClientDto;
 import com.mr_syrus.credit.api.entity.*;
 import com.mr_syrus.credit.api.repository.*;
 import jakarta.transaction.Transactional;
@@ -12,7 +13,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
-public class RegistrationService {
+public class ClientService {
     private final UserRepository userRepository;
     private final PersonalDataRepository personalDataRepository;
     private final RegistrationRepository registrationRepository;
@@ -21,13 +22,13 @@ public class RegistrationService {
     private final MailVerificationService mailService;
     private final SimplePasswordEncoder passwordEncoder;
 
-    public RegistrationService(UserRepository userRepository,
-                               PersonalDataRepository personalDataRepository,
-                               RegistrationRepository registrationRepository,
-                               RoleRepository roleRepository,
-                               AuthorizationCodeRepository codeRepository,
-                               MailVerificationService mailService,
-                               SimplePasswordEncoder passwordEncoder) {
+    public ClientService(UserRepository userRepository,
+                         PersonalDataRepository personalDataRepository,
+                         RegistrationRepository registrationRepository,
+                         RoleRepository roleRepository,
+                         AuthorizationCodeRepository codeRepository,
+                         MailVerificationService mailService,
+                         SimplePasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.personalDataRepository = personalDataRepository;
         this.registrationRepository = registrationRepository;
@@ -38,7 +39,7 @@ public class RegistrationService {
     }
 
     @Transactional
-    public String register(RegistrationDto dto) {
+    public String register(RegistrationClientDto dto) {
         //проверка уникальности
         if (userRepository.existsByUsername(dto.getUsername())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username already exists");
@@ -53,7 +54,7 @@ public class RegistrationService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Passport already registered");
         }
 
-        RoleEntity clientRole = roleRepository.findByName("CLIENT")
+        RoleEntity role = roleRepository.findByName("CLIENT")
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Default role not found"));
 
         //cоздание пользователя (неактивного до подтверждения)
@@ -62,9 +63,8 @@ public class RegistrationService {
                 dto.getUsername(),
                 dto.getMail(),
                 hashedPassword,
-                dto.getPhone(),
                 false, // active = false до подтверждения
-                clientRole
+                role
         );
         user = userRepository.save(user);
 
@@ -83,7 +83,8 @@ public class RegistrationService {
                 GenderStatus.valueOf(dto.getGender().toUpperCase()),
                 dto.getBirthDate(),
                 dto.getInn(),
-                dto.getSnils()
+                dto.getSnils(),
+                dto.getPhone()
         );
         personalData.setActive(true);
         personalData = personalDataRepository.save(personalData);
@@ -116,10 +117,10 @@ public class RegistrationService {
     }
 
     @Transactional
-    public void confirmRegistration(String codeIdStr, String code) {
+    public void confirmRegistration(CodeVerificationDto dto) {
         UUID codeId;
         try {
-            codeId = UUID.fromString(codeIdStr);
+            codeId = UUID.fromString(dto.getCodeId());
         } catch (IllegalArgumentException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid codeId");
         }
@@ -127,14 +128,15 @@ public class RegistrationService {
         AuthorizationCodeEntity authCode = codeRepository.findById(codeId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Code not found"));
 
-        if (!authCode.getCode().equals(code)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid code");
-        }
-
         LocalDateTime now = LocalDateTime.now();
         if (now.isBefore(authCode.getDateTimeStart()) || now.isAfter(authCode.getDateTimeEnd())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Code expired");
         }
+
+        if (!authCode.getCode().equals(dto.getCode())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid code");
+        }
+
 
         UserEntity user = authCode.getUser();
         if (user.getActive()) {

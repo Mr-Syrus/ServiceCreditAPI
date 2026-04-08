@@ -2,12 +2,11 @@ package com.mr_syrus.credit.api.dto;
 
 import java.time.LocalDate;
 
-public class RegistrationDto {
+public class RegistrationClientDto {
     // UserEntity
     private String username;
     private String mail;
     private String password;
-    private String phone;
 
     // PersonalDataEntity
     private String passportSeries;
@@ -22,6 +21,7 @@ public class RegistrationDto {
     private LocalDate birthDate;
     private String inn;
     private String snils;
+    private String phone;
 
     // RegistrationEntity
     private LocalDate registrationDate;

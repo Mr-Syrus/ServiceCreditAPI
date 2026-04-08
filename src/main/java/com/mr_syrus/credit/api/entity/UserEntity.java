@@ -23,9 +23,6 @@ public class UserEntity {
     @Column(name = "password_hash", nullable = false, length = 64)
     private String passwordHash;
 
-    @Column(name = "phone", nullable = false, length = 11, unique = true)
-    private String phone;
-
     @Column(name = "active", nullable = false)
     private Boolean active = true;
 
@@ -42,13 +39,11 @@ public class UserEntity {
     public UserEntity(String username,
                       String mail,
                       String passwordHash,
-                      String phone,
                       Boolean active,
                       RoleEntity role) {
         setUsername(username);
         setMail(mail);
         setPasswordHash(passwordHash);
-        setPhone(phone);
         setActive(active);
         setRole(role);
     }
@@ -96,14 +91,6 @@ public class UserEntity {
             throw new IllegalStateException("Password hash cannot be empty");
         }
 
-        if (phone == null || phone.trim().isEmpty()) {
-            throw new IllegalStateException("Phone cannot be empty");
-        }
-        String cleanPhone = phone.replaceAll("[^\\d]", "");
-        if (!cleanPhone.matches("\\d{11}")) {
-            throw new IllegalStateException("Phone must contain 11 digits");
-        }
-
         if (active == null) {
             throw new IllegalStateException("Active status cannot be null");
         }
@@ -143,16 +130,6 @@ public class UserEntity {
         this.passwordHash = passwordHash;
     }
 
-    public void setPhone(String phone) {
-        if (phone == null || phone.trim().isEmpty()) {
-            throw new IllegalArgumentException("Phone cannot be empty");
-        }
-        String cleanPhone = phone.replaceAll("[^\\d]", "");
-        if (!cleanPhone.matches("\\d{11}")) {
-            throw new IllegalArgumentException("Phone must contain 11 digits");
-        }
-        this.phone = cleanPhone;
-    }
 
     public void setActive(Boolean active) {
         if (active == null) {
@@ -175,10 +152,6 @@ public class UserEntity {
 
     public String getPasswordHash() {
         return passwordHash;
-    }
-
-    public String getPhone() {
-        return phone;
     }
 
     public Boolean getActive() {

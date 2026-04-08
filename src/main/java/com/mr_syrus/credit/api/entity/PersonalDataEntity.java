@@ -61,6 +61,9 @@ public class PersonalDataEntity {
     @Column(name = "snils", nullable = false, length = 11)
     private String snils;
 
+    @Column(name = "phone", nullable = false, length = 11, unique = true)
+    private String phone;
+
     public PersonalDataEntity() {
     }
 
@@ -78,7 +81,8 @@ public class PersonalDataEntity {
             GenderStatus gender,
             LocalDate birthDate,
             String inn,
-            String snils
+            String snils,
+            String phone
     ) {
         this.user = user;
         this.rosfinmonitoringStatus = rosfinmonitoringStatus != null ? rosfinmonitoringStatus : RosfinmonitoringStatus.NOT_RESTRICTED;
@@ -94,6 +98,7 @@ public class PersonalDataEntity {
         this.birthDate = Objects.requireNonNull(birthDate, "Birth date cannot be null");
         this.inn = validateAndCleanInn(inn);
         this.snils = validateAndCleanSnils(snils);
+        this.phone = validateAndCleanPhone(phone);
     }
 
     private static String requireNonBlank(String value, String fieldName) {
@@ -188,6 +193,31 @@ public class PersonalDataEntity {
         return cleaned;
     }
 
+    private static String validateAndCleanPhone(String rawPhone) {
+        if (rawPhone == null) {
+            throw new IllegalArgumentException("Phone number cannot be null");
+        }
+        // Удаляем все нецифровые символы
+        String cleaned = rawPhone.replaceAll("[^\\d]", "");
+        if (cleaned.isEmpty()) {
+            throw new IllegalArgumentException("Phone number cannot be empty after removing delimiters");
+        }
+        // Российский номер должен содержать 11 цифр
+        if (cleaned.length() != 11) {
+            throw new IllegalArgumentException("Russian phone number must contain exactly 11 digits, but got: " + cleaned.length());
+        }
+        // Допустимые первые цифры: 7 или 8
+        char firstDigit = cleaned.charAt(0);
+        if (firstDigit != '7' && firstDigit != '8') {
+            throw new IllegalArgumentException("Russian phone number must start with 7 or 8, but got: " + firstDigit);
+        }
+        // Приводим к единому формату: заменяем начальную 8 на 7
+        if (firstDigit == '8') {
+            cleaned = "7" + cleaned.substring(1);
+        }
+        return cleaned;
+    }
+
     @PrePersist
     private void prePersist() {
         if (rosfinmonitoringStatus == null) {
@@ -256,6 +286,14 @@ public class PersonalDataEntity {
         if (!snils.matches("\\d+")) {
             throw new IllegalStateException("SNILS must contain only digits");
         }
+
+        if (phone == null || phone.trim().isEmpty()) {
+            throw new IllegalStateException("Phone cannot be empty");
+        }
+        String cleanPhone = phone.replaceAll("[^\\d]", "");
+        if (!cleanPhone.matches("\\d{11}")) {
+            throw new IllegalStateException("Phone must contain 11 digits");
+        }
     }
 
     public Integer getId() {
@@ -285,6 +323,17 @@ public class PersonalDataEntity {
 
     public void setRosfinmonitoringStatus(RosfinmonitoringStatus rosfinmonitoringStatus) {
         this.rosfinmonitoringStatus = rosfinmonitoringStatus;
+    }
+
+    public void setPhone(String phone) {
+        if (phone == null || phone.trim().isEmpty()) {
+            throw new IllegalArgumentException("Phone cannot be empty");
+        }
+        String cleanPhone = phone.replaceAll("[^\\d]", "");
+        if (!cleanPhone.matches("\\d{11}")) {
+            throw new IllegalArgumentException("Phone must contain 11 digits");
+        }
+        this.phone = cleanPhone;
     }
 
     public String getPassportSeries() {
@@ -334,4 +383,6 @@ public class PersonalDataEntity {
     public String getSnils() {
         return snils;
     }
+
+    public String getPhone() {return phone; }
 }
