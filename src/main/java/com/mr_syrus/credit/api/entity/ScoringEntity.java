@@ -11,7 +11,7 @@ public class ScoringEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     @ManyToOne
     @JoinColumn(name = "application_id", nullable = false)
@@ -132,7 +132,7 @@ public class ScoringEntity {
         }
     }
 
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
 

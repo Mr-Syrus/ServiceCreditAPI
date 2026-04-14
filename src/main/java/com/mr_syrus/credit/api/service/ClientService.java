@@ -1,6 +1,7 @@
 package com.mr_syrus.credit.api.service;
 
 import com.mr_syrus.credit.api.dto.CodeVerificationDto;
+import com.mr_syrus.credit.api.dto.CreateApplicationDto;
 import com.mr_syrus.credit.api.dto.RegistrationClientDto;
 import com.mr_syrus.credit.api.entity.*;
 import com.mr_syrus.credit.api.repository.*;
@@ -9,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -21,6 +23,8 @@ public class ClientService {
     private final AuthorizationCodeRepository codeRepository;
     private final MailVerificationService mailService;
     private final SimplePasswordEncoder passwordEncoder;
+    private final CreditRepository creditRepository;
+    private final ApplicationRepository applicationRepository;
 
     public ClientService(UserRepository userRepository,
                          PersonalDataRepository personalDataRepository,
@@ -28,7 +32,10 @@ public class ClientService {
                          RoleRepository roleRepository,
                          AuthorizationCodeRepository codeRepository,
                          MailVerificationService mailService,
-                         SimplePasswordEncoder passwordEncoder) {
+                         SimplePasswordEncoder passwordEncoder,
+                         CreditRepository creditRepository,
+                         ApplicationRepository applicationRepository
+                         ) {
         this.userRepository = userRepository;
         this.personalDataRepository = personalDataRepository;
         this.registrationRepository = registrationRepository;
@@ -36,6 +43,8 @@ public class ClientService {
         this.codeRepository = codeRepository;
         this.mailService = mailService;
         this.passwordEncoder = passwordEncoder;
+        this.creditRepository = creditRepository;
+        this.applicationRepository = applicationRepository;
     }
 
     @Transactional
@@ -47,7 +56,7 @@ public class ClientService {
         if (userRepository.existsByMail(dto.getMail())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email already exists");
         }
-        if (userRepository.existsByPhone(dto.getPhone())) {
+        if (personalDataRepository.existsByPhone(dto.getPhone())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Phone already exists");
         }
         if (personalDataRepository.existsActiveByPassport(dto.getPassportSeries(), dto.getPassportNumber())) {
@@ -147,4 +156,44 @@ public class ClientService {
 
         codeRepository.delete(authCode);
     }
+
+    public Integer createApplication(CreateApplicationDto dto, UserEntity currentUser) {
+        // 1. Получить персональные данные пользователя
+        PersonalDataEntity personalData = personalDataRepository.findByUser(currentUser)
+                .orElseThrow(() -> new IllegalStateException("Personal data not found"));
+
+        // 2. Проверить соответствие верификационных данных
+        if (!normalize(personalData.getPassportSeries()).equals(normalize(dto.getPassportSeries())) ||
+                !normalize(personalData.getPassportNumber()).equals(normalize(dto.getPassportNumber())) ||
+                !normalize(personalData.getInn()).equals(normalize(dto.getInn())) ||
+                !normalize(personalData.getSnils()).equals(normalize(dto.getSnils())) ||
+                !personalData.getBirthDate().equals(dto.getBirthDate())) {
+            throw new IllegalArgumentException("Verification data does not match stored personal data");
+        }
+
+        // 3. Найти кредитный продукт
+        CreditEntity credit = creditRepository.findById(dto.getCreditId())
+                .orElseThrow(() -> new IllegalArgumentException("Credit product not found"));
+
+        // 4. Проверить допустимость суммы и срока
+        if (dto.getCreditAmount().compareTo(credit.getMinAmount()) < 0 ||
+                dto.getCreditAmount().compareTo(credit.getMaxAmount()) > 0) {
+            throw new IllegalArgumentException("Credit amount out of allowed range");
+        }
+        if (dto.getCreditTerm() < credit.getMinTermMonths() ||
+                dto.getCreditTerm() > credit.getMaxTermMonths()) {
+            throw new IllegalArgumentException("Credit term out of allowed range");
+        }
+
+        // 5. Создать заявку
+        ApplicationEntity application = new ApplicationEntity(personalData, credit, dto.getCreditTerm(), dto.getCreditAmount());
+        application = applicationRepository.save(application);
+
+        return application.getId();
+    }
+
+    private String normalize(String value) {
+        return value == null ? null : value.replaceAll("[-\\s]", "");
+    }
+
 }

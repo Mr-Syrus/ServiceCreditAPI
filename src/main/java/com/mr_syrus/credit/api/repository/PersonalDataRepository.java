@@ -1,12 +1,16 @@
 package com.mr_syrus.credit.api.repository;
 
 import com.mr_syrus.credit.api.entity.PersonalDataEntity;
+import com.mr_syrus.credit.api.entity.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.util.Optional;
 
 public interface PersonalDataRepository extends JpaRepository<PersonalDataEntity, Integer> {
+
+    boolean existsByPhone(String phone);
+    Optional<PersonalDataEntity> findByUser(UserEntity user);
 
     @Query("SELECT pd FROM PersonalDataEntity pd " +
             "JOIN pd.user u " +

@@ -13,7 +13,7 @@ public class ApplicationEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     @ManyToOne
     @JoinColumn(name = "personal_data_id", nullable = false)
@@ -83,7 +83,7 @@ public class ApplicationEntity {
         }
     }
 
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
 
