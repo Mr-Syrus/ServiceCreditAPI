@@ -157,6 +157,7 @@ public class ClientService {
         codeRepository.delete(authCode);
     }
 
+    @Transactional
     public Integer createApplication(CreateApplicationDto dto, UserEntity currentUser) {
         // 1. Получить персональные данные пользователя
         PersonalDataEntity personalData = personalDataRepository.findByUser(currentUser)
