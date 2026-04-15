@@ -26,9 +26,9 @@ public class UserEntity {
     @Column(name = "active", nullable = false)
     private Boolean active = true;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "role_id", nullable = false)
-    private RoleEntity role;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false)
+    private Role role;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<PersonalDataEntity> personalData = new ArrayList<>();
@@ -40,7 +40,7 @@ public class UserEntity {
                       String mail,
                       String passwordHash,
                       Boolean active,
-                      RoleEntity role) {
+                      Role role) {
         setUsername(username);
         setMail(mail);
         setPasswordHash(passwordHash);
@@ -56,11 +56,11 @@ public class UserEntity {
         personalData.setUser(this);
     }
 
-    public RoleEntity getRole() {
+    public Role getRole() {
         return role;
     }
 
-    public void setRole(RoleEntity role) {
+    public void setRole(Role role) {
         if (role == null) {
             throw new IllegalArgumentException("Role cannot be null");
         }

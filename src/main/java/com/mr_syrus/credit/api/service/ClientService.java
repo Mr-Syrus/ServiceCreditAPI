@@ -19,7 +19,6 @@ public class ClientService {
     private final UserRepository userRepository;
     private final PersonalDataRepository personalDataRepository;
     private final RegistrationRepository registrationRepository;
-    private final RoleRepository roleRepository;
     private final AuthorizationCodeRepository codeRepository;
     private final MailVerificationService mailService;
     private final SimplePasswordEncoder passwordEncoder;
@@ -29,7 +28,6 @@ public class ClientService {
     public ClientService(UserRepository userRepository,
                          PersonalDataRepository personalDataRepository,
                          RegistrationRepository registrationRepository,
-                         RoleRepository roleRepository,
                          AuthorizationCodeRepository codeRepository,
                          MailVerificationService mailService,
                          SimplePasswordEncoder passwordEncoder,
@@ -39,7 +37,6 @@ public class ClientService {
         this.userRepository = userRepository;
         this.personalDataRepository = personalDataRepository;
         this.registrationRepository = registrationRepository;
-        this.roleRepository = roleRepository;
         this.codeRepository = codeRepository;
         this.mailService = mailService;
         this.passwordEncoder = passwordEncoder;
@@ -63,8 +60,7 @@ public class ClientService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Passport already registered");
         }
 
-        RoleEntity role = roleRepository.findByName("CLIENT")
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Default role not found"));
+        Role role = Role.CLIENT;
 
         //cоздание пользователя (неактивного до подтверждения)
         String hashedPassword = passwordEncoder.encode(dto.getPassword());

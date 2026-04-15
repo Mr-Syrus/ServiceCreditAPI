@@ -12,6 +12,8 @@ public interface PersonalDataRepository extends JpaRepository<PersonalDataEntity
     boolean existsByPhone(String phone);
     Optional<PersonalDataEntity> findByUser(UserEntity user);
 
+
+
     @Query("SELECT pd FROM PersonalDataEntity pd " +
             "JOIN pd.user u " +
             "WHERE u.mail = :mail " +
