@@ -46,7 +46,7 @@ public class ClientService {
 
     @Transactional
     public String register(RegistrationClientDto dto) {
-        //проверка уникальности
+        // 1. проверка уникальности
         if (userRepository.existsByUsername(dto.getUsername())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username already exists");
         }
@@ -62,7 +62,7 @@ public class ClientService {
 
         Role role = Role.CLIENT;
 
-        //cоздание пользователя (неактивного до подтверждения)
+        // 2. cоздание пользователя (неактивного до подтверждения)
         String hashedPassword = passwordEncoder.encode(dto.getPassword());
         UserEntity user = new UserEntity(
                 dto.getUsername(),
@@ -73,7 +73,7 @@ public class ClientService {
         );
         user = userRepository.save(user);
 
-        //запись персональных данных
+        // 2.1 запись персональных данных
         PersonalDataEntity personalData = new PersonalDataEntity(
                 user,
                 RosfinmonitoringStatus.NOT_RESTRICTED,
@@ -94,7 +94,7 @@ public class ClientService {
         personalData.setActive(true);
         personalData = personalDataRepository.save(personalData);
 
-        //запись прописки
+        // 2.2 запись прописки
         RegistrationStatus status = RegistrationStatus.valueOf(dto.getRegistrationType().toUpperCase());
 
         RegistrationEntity registration = new RegistrationEntity(
@@ -168,11 +168,20 @@ public class ClientService {
             throw new IllegalArgumentException("Verification data does not match stored personal data");
         }
 
-        // 3. Найти кредитный продукт
+        // 2.1 Проверка по спискам Росфинмониторинга (заглушка)
+        // В реальном проекте здесь должен быть вызов внешнего API Росфинмониторинга
+        // Передать паспортные данные, ИНН, СНИЛС, ФИО
+        // Если API вернёт статус "IN_LIST_FULL_BLOCK" - выбросить исключение
+        // Пока просто запрос к заранее заданному полю
+        if (personalData.getRosfinmonitoringStatus() != RosfinmonitoringStatus.NOT_RESTRICTED) {
+            throw new IllegalArgumentException("Client is blacklisted by Rosfinmonitoring");
+        }
+
+        // 2.2 Проверка кредитного продукта
         CreditEntity credit = creditRepository.findById(dto.getCreditId())
                 .orElseThrow(() -> new IllegalArgumentException("Credit product not found"));
 
-        // 4. Проверить допустимость суммы и срока
+        // 2.3 Проверка допустимости суммы и срока
         if (dto.getCreditAmount().compareTo(credit.getMinAmount()) < 0 ||
                 dto.getCreditAmount().compareTo(credit.getMaxAmount()) > 0) {
             throw new IllegalArgumentException("Credit amount out of allowed range");
@@ -182,7 +191,7 @@ public class ClientService {
             throw new IllegalArgumentException("Credit term out of allowed range");
         }
 
-        // 5. Создать заявку
+        // 2.4 Создать заявку
         ApplicationEntity application = new ApplicationEntity(personalData, credit, dto.getCreditTerm(), dto.getCreditAmount());
         application = applicationRepository.save(application);
 

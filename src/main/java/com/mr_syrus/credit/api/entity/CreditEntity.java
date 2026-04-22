@@ -49,6 +49,7 @@ public class CreditEntity {
         setMinTermMonths(minTermMonths);
         setMaxTermMonths(maxTermMonths);
         setMinScore(minScore);
+        setActive(active);
     }
 
     @PrePersist
